@@ -1,0 +1,4 @@
+{
+    "command": "npm run test",
+    "working_directory": "/home/kavia/workspace/code-generation/patient-history-management-system-10190-10199/patient_history_frontend"
+}
