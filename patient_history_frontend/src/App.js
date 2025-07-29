@@ -1,48 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Sidebar from "./components/Sidebar";
+import Topbar from "./components/Topbar";
+import LoginPage from "./pages/LoginPage";
+import PatientListPage from "./pages/PatientListPage";
+import PatientDetailPage from "./pages/PatientDetailPage";
+import { AuthProvider, useAuth } from "./hooks/useAuth";
+import { ThemeProvider } from "./theme/ThemeProvider";
+import "./App.css";
+
+// PUBLIC_INTERFACE
+function ProtectedRoute({ children }) {
+  /** Redirects unauthenticated users to login. */
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+}
+
+// PUBLIC_INTERFACE
+function MainLayout({ children }) {
+  /** Layout with sidebar, topbar, and main content */
+  return (
+    <div className="layout">
+      <Sidebar />
+      <div className="layout-main">
+        <Topbar />
+        <div className="content">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 // PUBLIC_INTERFACE
 function App() {
-  const [theme, setTheme] = useState('light');
-
-  // Effect to apply theme to document element
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-
-  // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
-
+  /** Main entry for the Patient History app */
   return (
-    <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthProvider>
+      <ThemeProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Routes>
+                      <Route path="/" element={<PatientListPage />} />
+                      <Route path="/patient/:id" element={<PatientDetailPage />} />
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Router>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 
